@@ -1,0 +1,6 @@
+{ "SYNTHETIC": true, "source_url": "https://example.invalid/synthetic-usage/garchomp", "fetched": "2000-01-01",
+  "spreads": [
+    { "nature": "Jolly",   "points": { "atk": 32, "spe": 32, "hp": 2 }, "usage_pct": 40 },
+    { "nature": "Adamant", "points": { "atk": 32, "hp": 32, "spe": 2 }, "usage_pct": 25 },
+    { "nature": "Adamant", "points": { "atk": 32, "spe": 32, "hp": 2 }, "usage_pct": 10 }
+  ] }

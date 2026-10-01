@@ -1,0 +1,8 @@
+{
+  "name": "Example: sun, Tailwind for side A, Reflect + Helping Hand + Intimidate on side B",
+  "field": { "weather": "Sun" },
+  "sideA": { "isTailwind": true },
+  "sideB": { "isReflect": true, "isHelpingHand": true },
+  "intimidate": { "A": false, "B": true },
+  "tera": { "A": [], "B": [] }
+}

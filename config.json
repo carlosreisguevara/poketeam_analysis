@@ -1,0 +1,10 @@
+{
+  "game": "Pokemon Champions",
+  "format": "VGC doubles",
+  "level": 50,
+  "regulation": "MC",
+  "regulation_set_on": "2026-10-01",
+  "legal_pool_file": "data/legal-pool.json",
+  "legal_pool_status": "UNKNOWN - not fetched yet (needs a public source, see Phase 3)",
+  "note": "When the regulation changes, tell Claude; the legal pool file is re-fetched with source URL and date."
+}

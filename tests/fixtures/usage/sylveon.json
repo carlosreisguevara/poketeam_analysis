@@ -1,0 +1,2 @@
+{ "SYNTHETIC": true, "source_url": "https://example.invalid/synthetic-usage/sylveon", "fetched": "2000-01-01",
+  "spreads": [ { "nature": "Modest", "points": { "hp": 15, "def": 17, "spa": 32, "spe": 2 }, "usage_pct": 30 } ] }

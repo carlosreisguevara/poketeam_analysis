@@ -1,0 +1,17 @@
+{
+  "name": "poketeam-analysis",
+  "version": "0.2.0",
+  "description": "Pokemon Champions VGC doubles team evaluation: calc engine, meta library, matchup tables.",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "setup": "node src/setup.js",
+    "test": "node tests/run-tests.js && node tests/run-phase2-tests.js",
+    "analyze": "node src/analyze.js",
+    "check-meta": "node src/meta-check.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@smogon/calc": "^0.12.0"
+  }
+}

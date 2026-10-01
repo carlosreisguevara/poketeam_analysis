@@ -1,0 +1,6 @@
+{
+  "status": "LOCKED",
+  "approved_on": "2026-10-01",
+  "approved_by": "user",
+  "rule": "Missing nature/stat points are filled only from the most common spread in usage data (saved with source URL and fetch date). Default spreads are never used. If no usage data exists the Pokemon is UNKNOWN and the tool stops."
+}

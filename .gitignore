@@ -1,0 +1,9 @@
+node_modules/
+# Personal files: each user keeps their own team, fetched data and results
+teams/*.txt
+output/
+data/usage/*.json
+meta/*.txt
+!meta/_*
+# Scratch
+*.log

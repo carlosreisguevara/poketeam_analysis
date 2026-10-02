@@ -29,6 +29,7 @@ function loadMetaTeam(file, { gen = 9, ruleset = 'champions', usageDir, rule } =
   if (sets.length < 4 || sets.length > 6) throw new Error(`${file}: a team must have 4 to 6 Pokemon, found ${sets.length}.`);
   const r = rule || loadRule();
   for (const s of sets) {
+    s.label = s.species; // opponents are always shown by species; paste nicknames are ignored
     if (!s.ability) throw new Error(`${file}: ${s.label} has no Ability - UNKNOWN (abilities are never assumed).`);
     if (!s.item) throw new Error(`${file}: ${s.label} has no Item - UNKNOWN (items are never assumed).`);
     try { applyAssumptions(s, gen, { usageDir, rule: r }); } catch (e) { throw new Error(`${file}: ${e.message}`); }

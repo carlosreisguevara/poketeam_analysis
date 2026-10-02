@@ -3,12 +3,15 @@
   "version": "0.2.0",
   "description": "Pokemon Champions VGC doubles team evaluation: calc engine, meta library, matchup tables.",
   "private": true,
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "setup": "node src/setup.js",
-    "test": "node tests/run-tests.js && node tests/run-phase2-tests.js",
+    "test": "node tests/run-tests.js && node tests/run-phase2-tests.js && node tests/run-phase4-tests.js",
     "analyze": "node src/analyze.js",
-    "check-meta": "node src/meta-check.js"
+    "check-meta": "node src/meta-check.js",
+    "threats": "node src/summarize.js output/my-team"
   },
   "license": "UNLICENSED",
   "dependencies": {

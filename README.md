@@ -33,7 +33,7 @@ See `CLAUDE.md` (hard rules and phases) and `RULES-assumed-spreads.md`. In short
 | 1 | Calc engine (damage, KO, speed, doubles mechanics) | done, tested against the official calc test suite |
 | 2 | Opponent team format and missing-spread rule | done |
 | 3 | Fetch top teams and most common spreads (VGCPastes sheet + Pokepaste) | done: `node src/fetch-data.js fetch`, review `data/staging/SUMMARY.md`, then `promote` |
-| 4 | Matchup runner and key-threat summary | partly (`npm run analyze` writes one table set per matchup; threat summary not built) |
+| 4 | Matchup runner and key-threat summary | done: `npm run analyze` writes tables per matchup and `output/<team>/THREATS.md` |
 | 5 | Written report (agent `vgc-analyst`) | not built |
 
 Known limits: the calculator's data is Scarlet/Violet data, so Champions-specific changes to moves, abilities or Pokemon are UNKNOWN unless the calculator already has them. Weather and terrain from abilities are not applied automatically (set them in a scenario file).

@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { loadTeamFile, loadMetaTeam } = require('./meta');
+const { summarize } = require('./summarize');
 
 const root = path.join(__dirname, '..');
 const args = process.argv.slice(2);
@@ -47,7 +48,8 @@ for (const f of metaFiles) {
 let md = `# Analysis index: ${teamName}\n\nGenerated ${new Date().toISOString()}${scenario ? `, scenario ${scenario}` : ''}\n\n## Matchups calculated (${ok.length})\n\n`;
 md += ok.map(n => `- ${n}: [damage](${n}/damage.md), [speed](${n}/speed.md), [stats](${n}/stats.md)`).join('\n') + '\n';
 if (failed.length) md += `\n## Opponent teams that could NOT be calculated (${failed.length})\n\n` + failed.map(x => `- ${x.name}: ${x.msg}`).join('\n') + '\n';
-md += '\n## Not built yet\n\n- Key-threat summary across all matchups (Phase 4)\n- Written report with gameplans (Phase 5)\n';
+if (ok.length) { summarize(outRoot); md += '\n## Key threats\n\n- [THREATS.md](THREATS.md): what outspeeds me, what OHKOs/2HKOs me, what I KO (also threats.json)\n'; }
+md += '\n## Not built yet\n\n- Written report with gameplans (Phase 5)\n';
 fs.writeFileSync(path.join(outRoot, 'INDEX.md'), md);
 console.log(`\nDone: ${ok.length} calculated, ${failed.length} failed. Index: ${path.join(outRoot, 'INDEX.md')}`);
 process.exit(failed.length ? 2 : 0);

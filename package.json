@@ -13,7 +13,8 @@
     "check-meta": "node src/meta-check.js",
     "threats": "node src/summarize.js output/my-team",
     "review": "node src/team-review.js",
-    "report": "node src/team-review.js && node src/build-report.js"
+    "report": "node src/team-review.js && node src/build-html.js",
+    "open": "node src/serve.js"
   },
   "license": "UNLICENSED",
   "dependencies": {

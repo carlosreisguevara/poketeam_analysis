@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VGC team report</title>
+<style>
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --surface2: #eef0f4; --text: #1b1f27; --muted: #5d6676; --line: #d9dde5;
+  --accent: #2f6fed; --me: #2f6fed; --them: #d9622b;
+  --ok: #1e8e5a; --warn: #c98a00; --bad: #c0392b;
+  --d-og: #c0392b; --d-oc: #e88a80; --d-tg: #f0a04b; --d-tc: #f7dc8a;
+  --g-og: #1e8e5a; --g-oc: #62c08c; --g-tg: #a3d9bc; --g-tc: #d3ecdf;
+  --on-dark: #ffffff; --on-light: #1b1f27;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151b; --surface: #1b2029; --surface2: #252b36; --text: #e8ebf1; --muted: #9aa4b5; --line: #323a48;
+    --accent: #6c9bff; --me: #6c9bff; --them: #f08a55;
+    --ok: #4cc58a; --warn: #e3b341; --bad: #ef7b6d;
+    --d-og: #cc4430; --d-oc: #a9564d; --d-tg: #b27a26; --d-tc: #85742f;
+    --g-og: #1f9e66; --g-oc: #31855f; --g-tg: #417660; --g-tc: #36574d;
+    --on-light: #e8ebf1;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151b; --surface: #1b2029; --surface2: #252b36; --text: #e8ebf1; --muted: #9aa4b5; --line: #323a48;
+  --accent: #6c9bff; --me: #6c9bff; --them: #f08a55; --ok: #4cc58a; --warn: #e3b341; --bad: #ef7b6d;
+  --d-og: #cc4430; --d-oc: #a9564d; --d-tg: #b27a26; --d-tc: #85742f;
+  --g-og: #1f9e66; --g-oc: #31855f; --g-tg: #417660; --g-tc: #36574d; --on-light: #e8ebf1;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--accent); }
+header.top { position: sticky; top: 0; z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.bar { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 10px 16px; max-width: 1180px; margin: 0 auto; }
+.brand { font-weight: 700; }
+nav { scrollbar-color: var(--line) transparent; display: flex; flex-wrap: nowrap; gap: 4px; flex: 1 1 360px; min-width: 0; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+nav button { white-space: nowrap; }
+nav button { border: 1px solid transparent; background: transparent; color: var(--text); padding: 6px 10px; border-radius: 8px; font: inherit; cursor: pointer; }
+nav button:hover { background: var(--surface2); }
+nav button[aria-current="page"] { background: var(--accent); color: #fff; }
+nav .sep { width: 1px; background: var(--line); margin: 4px 4px; }
+.search { margin-left: auto; flex: 0 0 auto; }
+.search input { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); width: 190px; }
+main { max-width: 1180px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 24px; margin: 8px 0 4px; }
+h2 { font-size: 18px; margin: 28px 0 10px; }
+h3 { font-size: 15px; margin: 0 0 6px; }
+.sub { color: var(--muted); margin: 0 0 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.tile .n { font-size: 26px; font-weight: 700; line-height: 1.1; }
+.tile .l { color: var(--muted); font-size: 13px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; color: #fff; margin-right: 4px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-left-width: 5px; border-radius: 8px; padding: 3px 9px; background: var(--surface); font-weight: 600; margin: 2px 4px 2px 0; white-space: nowrap; }
+.pill.bad { border-color: var(--bad); color: var(--bad); font-weight: 500; white-space: normal; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; }
+.tag.j { background: var(--surface2); color: var(--muted); }
+.tag.c { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+.tag.assumed { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+.tag.real { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+.badge { display: inline-block; font-weight: 700; padding: 2px 10px; border-radius: 999px; font-size: 13px; color: #fff; }
+.badge.hard { background: var(--bad); } .badge.even { background: var(--warn); color: #1b1f27; } .badge.easy { background: var(--ok); }
+table { border-collapse: collapse; width: 100%; }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td, tr:last-child th { border-bottom: 0; }
+thead th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+tr.click { cursor: pointer; } tr.click:hover { background: var(--surface2); }
+.meter { display: flex; align-items: center; gap: 8px; min-width: 110px; }
+.meter .track { flex: 1; height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
+.meter .fill { height: 100%; border-radius: 4px; }
+.small { font-size: 12.5px; color: var(--muted); }
+.pcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.pcard.likely { outline: 2px solid var(--accent); }
+.pcard h3 { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pcard dl { margin: 8px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 13px; }
+.pcard dt { color: var(--muted); } .pcard dd { margin: 0; }
+.moves { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.mv { font-size: 12px; border-radius: 6px; padding: 1px 7px; color: #fff; font-weight: 600; }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.toggles button { font: inherit; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 8px; padding: 5px 11px; cursor: pointer; }
+.toggles button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+table.heat { min-width: 640px; }
+table.heat th.row { white-space: nowrap; background: var(--surface); position: sticky; left: 0; }
+table.heat td { padding: 4px; text-align: center; border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); min-width: 88px; }
+.cell { border-radius: 8px; padding: 6px 4px; cursor: pointer; line-height: 1.2; min-height: 46px; display: flex; flex-direction: column; justify-content: center; border: 2px solid transparent; }
+.cell b { font-size: 14px; } .cell span { font-size: 11px; opacity: .92; }
+.cell.sel { border-color: var(--text); }
+.d-og { background: var(--d-og); color: var(--on-dark); } .d-oc { background: var(--d-oc); color: var(--on-dark); } .d-tg { background: var(--d-tg); color: var(--on-dark); } .d-tc { background: var(--d-tc); color: var(--on-light); }
+.g-og { background: var(--g-og); color: var(--on-dark); } .g-oc { background: var(--g-oc); color: var(--on-dark); } .g-tg { background: var(--g-tg); color: var(--on-light); } .g-tc { background: var(--g-tc); color: var(--on-light); }
+.none { background: var(--surface2); color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); margin: 6px 0 10px; }
+.legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 5px; }
+.detail { margin-top: 10px; }
+.sp { display: grid; grid-template-columns: 150px 1fr 56px; gap: 6px 10px; align-items: center; font-size: 13.5px; }
+.sp .bar2 { height: 14px; border-radius: 4px; background: var(--surface2); overflow: hidden; }
+.sp .bar2 i { display: block; height: 100%; border-radius: 4px; }
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.plan { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.plan-h { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: 16px; }
+.slot { display: grid; grid-template-columns: 52px 1fr; align-items: center; }
+.lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.calc { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 13px; border-top: 1px solid var(--line); padding-top: 8px; }
+.calc .v { font-weight: 700; text-align: right; border-radius: 6px; padding: 0 7px; }
+.calc .k { grid-column: 1 / -1; color: var(--muted); font-size: 12px; margin-top: -2px; margin-bottom: 4px; }
+.likely-box { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.wd { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 6px; }
+.wd div { border-radius: 8px; padding: 6px; text-align: center; background: var(--surface2); font-size: 12px; }
+.wd div b { display: block; font-size: 18px; }
+.wd .w1 { background: color-mix(in srgb, var(--warn) 30%, var(--surface2)); } .wd .w2 { background: color-mix(in srgb, var(--bad) 35%, var(--surface2)); } .wd .w3 { background: var(--bad); color: #fff; }
+footer { max-width: 1180px; margin: 24px auto; padding: 0 16px 40px; color: var(--muted); font-size: 12.5px; }
+@media (max-width: 640px) { .sp { grid-template-columns: 110px 1fr 46px; } .search { margin-left: 0; width: 100%; } .search input { width: 100%; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="bar"><span class="brand" id="brand"></span><nav id="nav"></nav><div class="search"><input id="q" type="search" placeholder="Find a Pokemon..." aria-label="Find a Pokemon"></div></div></header>
+<main id="app"></main>
+<footer id="foot"></footer>
+<script>
+/*__DATA__*/
+const TYPE = { Normal: '#8f98a3', Fire: '#e8622c', Water: '#3c8fe0', Electric: '#d9a40a', Grass: '#3ea24f', Ice: '#4fb8c8', Fighting: '#c23f38', Poison: '#9a45b8', Ground: '#b88a44', Flying: '#6f8fe0', Psychic: '#e4568a', Bug: '#8aa31c', Rock: '#a89a62', Ghost: '#6a5aa5', Dragon: '#5a4fd1', Dark: '#5b4a42', Steel: '#6b8899', Fairy: '#e07ab8' };
+const LAB = { 'ohko-g': 'OHKO', 'ohko-c': 'OHKO?', 'two-g': '2HKO', 'two-c': '2HKO?', none: '' };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const $ = id => document.getElementById(id);
+const M = id => DATA.matchups.find(m => m.id === id);
+const mon = n => DATA.mine.find(m => m.name === n);
+const tc = t => TYPE[t] || '#777';
+const chips = types => types.map(t => `<span class="chip" style="background:${tc(t)}">${esc(t)}</span>`).join('');
+const pill = (name, types) => `<span class="pill" style="border-left-color:${tc((types || [])[0])}">${esc(name)}</span>`;
+const myPill = n => pill(n, (mon(n) || {}).types);
+const state = { view: 'overview', mid: null, mode: 'hitMe', sel: null, tr: false, twMe: false, twThem: false, q: '' };
+
+function route() {
+  const h = location.hash.replace(/^#\/?/, '').split('/');
+  if (h[0] === 'm' && M(h[1])) { state.view = 'matchup'; state.mid = h[1]; }
+  else if (h[0] === 'team') state.view = 'team';
+  else if (h[0] === 'pokemon') state.view = 'pokemon';
+  else state.view = 'overview';
+  state.sel = null; render(); window.scrollTo(0, 0);
+}
+function go(p) { location.hash = '#/' + p; }
+
+function shortName(m) { return m.id.toUpperCase() + ' ' + (m.result.split(',')[0] || ''); }
+function diff(m) { return m.scores.myPokemonFacingGuaranteedOhko - m.scores.theirPokemonIGuaranteedOhko; }
+function level(m) { const d = diff(m); return d >= 1 ? ['hard', 'Hard'] : d === 0 ? ['even', 'Even'] : ['easy', 'Easier']; }
+function trust(m) { return m.assumedCount ? `<span class="tag assumed" title="Spreads that were not in the team sheet and were filled in from the most common spread">${m.assumedCount} of ${m.theirs.length} assumed</span>` : `<span class="tag real" title="Every spread is from the team sheet">real spreads</span>`; }
+function meter(v, max, color) { return `<div class="meter"><b>${v}</b><div class="track"><div class="fill" style="width:${Math.round(100 * v / max)}%;background:${color}"></div></div></div>`; }
+
+function nav() {
+  const items = [['overview', 'Overview'], ['team', 'My team']];
+  $('nav').innerHTML = items.map(([k, l]) => `<button data-go="${k === 'overview' ? '' : k}" ${state.view === k ? 'aria-current="page"' : ''}>${l}</button>`).join('')
+    + '<span class="sep"></span>'
+    + DATA.overall.worst.map(id => M(id)).map(m => `<button data-go="m/${m.id}" ${state.view === 'matchup' && state.mid === m.id ? 'aria-current="page"' : ''} title="${esc(m.title)}">${esc(shortName(m))}</button>`).join('')
+    + '<span class="sep"></span>' + `<button data-go="pokemon" ${state.view === 'pokemon' ? 'aria-current="page"' : ''}>Pokemon index</button>`;
+}
+
+function vOverview() {
+  const rows = DATA.overall.worst.map(id => M(id)).map((m, i) => {
+    const [cls, lab] = level(m);
+    return `<tr class="click" data-go="m/${m.id}"><td><b>${i + 1}</b></td>
+      <td><b>${esc(shortName(m))}</b><div class="small">${esc(m.title.replace(/ \(MC\d+\)/, ''))}</div></td>
+      <td><span class="badge ${cls}">${lab}</span></td>
+      <td>${meter(m.scores.myPokemonFacingGuaranteedOhko, 6, 'var(--bad)')}</td>
+      <td>${meter(m.scores.theirPokemonIGuaranteedOhko, 6, 'var(--ok)')}</td>
+      <td>${meter(m.scores.opposingFasterPairs, m.scores.pairsTotal, 'var(--them)')}</td>
+      <td>${m.plan.likelyFour.map(n => pill(n, (m.theirs.find(t => t.name === n) || {}).types)).join('')}<div class="small">${esc(m.plan.confidence)} confidence</div></td>
+      <td>${trust(m)}</td></tr>`;
+  }).join('');
+  $('app').innerHTML = `<h1>${esc(DATA.team)} against the best recent teams</h1>
+  <p class="sub">${DATA.matchups.length} top finishers of the Baltimore Regional, ranked from hardest to easiest for your team. Click a row for its game plans.</p>
+  <div class="scroll"><table><thead><tr><th>#</th><th>Opposing team</th><th>Difficulty</th><th title="My Pokemon that at least one of their Pokemon knocks out in one hit for sure">My Pokemon in danger (of 6)</th><th title="Their Pokemon that at least one of my Pokemon knocks out in one hit for sure">Their Pokemon I can KO (of 6)</th><th title="Pairs where their Pokemon is faster than mine">Faster than me (of 36)</th><th>Likely four</th><th>Data</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <p class="small"><b>How it is ranked:</b> ${esc(DATA.overall.rule)} The Easier or Hard label follows that same difference.</p>
+  <h2>Things to know</h2>
+  <div class="grid2">${DATA.overall.notes.map(n => `<div class="card"><span class="tag j">Judgment</span><p style="margin:8px 0 0">${esc(n)}</p></div>`).join('')}</div>`;
+}
+
+function pcard(p, likely) {
+  const pts = Object.entries(p.points).map(([k, v]) => `${v} ${k.toUpperCase()}`).join(' / ') || 'none';
+  const a = p.assumption;
+  return `<div class="pcard ${likely ? 'likely' : ''}"><h3>${esc(p.name)} ${chips(p.types)}</h3>
+    <div>${p.assumed ? `<span class="tag assumed" title="${esc((a.older ? 'Older-regulation data. ' : '') + a.source + (a.pct ? ', ' + a.pct + '% of samples' : ''))}">assumed spread</span>` : ''} ${likely ? '<span class="tag c">likely brought</span>' : ''}</div>
+    <dl><dt>Item</dt><dd>${esc(p.item)}</dd><dt>Ability</dt><dd>${esc(p.ability)}</dd><dt>Nature</dt><dd>${esc(p.nature)}</dd><dt>Points</dt><dd>${esc(pts)}</dd><dt>Speed</dt><dd><b>${p.speed}</b> &nbsp;<span class="small">HP ${p.stats.hp} · Atk ${p.stats.atk} · Def ${p.stats.def} · SpA ${p.stats.spa} · SpD ${p.stats.spd}</span></dd></dl>
+    <div class="moves">${p.moves.map(v => `<span class="mv" style="background:${tc(v.type)}" title="${esc(v.type)} · ${esc(v.cat)}">${esc(v.name)}</span>`).join('')}</div></div>`;
+}
+
+function vTeam() {
+  const d = DATA.defensive;
+  $('app').innerHTML = `<h1>My team</h1><p class="sub">Six Pokemon. Items, abilities and final stats at level 50.</p>
+  <div class="grid2">${DATA.mine.map(p => pcard(p, false)).join('')}</div>
+  <h2>Weak to which attacking type?</h2>
+  <p class="sub">Number of my Pokemon weak to each type (by type only; abilities are ignored). Hover for names.</p>
+  <div class="wd">${Object.keys(d).map(t => { const c = d[t].weakCount; return `<div class="${c >= 3 ? 'w3' : c === 2 ? 'w2' : c === 1 ? 'w1' : ''}" title="${esc(d[t].weak.join(', ') || 'none')}"><b>${c}</b>${esc(t)}</div>`; }).join('')}</div>
+  <h2>What my moves hit super effectively</h2>
+  <p class="sub">Defending types with at least one super effective damaging move from my team.</p>
+  <div>${Object.entries(DATA.offensive).map(([t, o]) => `<span class="chip" style="background:${o.covered ? tc(t) : 'transparent'};color:${o.covered ? '#fff' : 'var(--bad)'};border:1px solid ${o.covered ? 'transparent' : 'var(--bad)'}" title="${esc(o.superEffective.join(', ') || 'no move hits this type super effectively')}">${esc(t)}${o.covered ? '' : ' ✕'}</span>`).join('')}</div>
+  <h2>Speed against the ${DATA.matchups.length} teams</h2>
+  <div class="scroll"><table><thead><tr><th>Pokemon</th><th>Speed</th><th>Their Pokemon faster (all teams)</th><th>Slower</th></tr></thead><tbody>${DATA.teamSpeed.map(s => `<tr><th>${myPill(s.name)}</th><td><b>${s.speed}</b></td><td>${meter(s.opposingFaster, DATA.matchups.length * 6, 'var(--them)')}</td><td>${s.opposingSlower}</td></tr>`).join('')}</tbody></table></div>
+  <h2>Reading of the team</h2>
+  <div class="grid2">${DATA.plansTeam.problems.map(p => `<div class="card"><span class="tag j">Judgment: problem</span><h3 style="margin-top:8px">${esc(p.title)}</h3><p style="margin:0">${esc(p.text)}</p></div>`).join('')}
+  ${DATA.plansTeam.winConditions.map(p => `<div class="card"><span class="tag j">Judgment: how it wins</span><h3 style="margin-top:8px">${esc(p.title)}</h3><p style="margin:0">${esc(p.text)}</p></div>`).join('')}
+  <div class="card"><span class="tag j">Judgment: worth testing</span><ul style="margin:8px 0 0;padding-left:18px">${DATA.plansTeam.fixes.map(f => `<li>${esc(f)}</li>`).join('')}</ul></div></div>`;
+}
+
+function matrix(m) {
+  const hit = state.mode === 'hitMe', data = m[state.mode], pre = hit ? 'd' : 'g';
+  const head = DATA.myNames.map(n => `<th>${esc(n)}</th>`).join('');
+  const rows = m.theirs.map((t, ti) => `<tr><th class="row">${esc(t.name)}${t.assumed ? ' <span class="tag assumed">assumed</span>' : ''}</th>${DATA.myNames.map((n, mi) => {
+    const c = data[ti][mi][0]; if (!c) return '<td><div class="cell none"><b>-</b></div></td>';
+    const sel = state.sel && state.sel[0] === ti && state.sel[1] === mi;
+    const txt = LAB[c.cls] || `${c.max}%`;
+    return `<td><div class="cell ${c.cls === 'none' ? 'none' : pre + '-' + (c.cls === 'ohko-g' ? 'og' : c.cls === 'ohko-c' ? 'oc' : c.cls === 'two-g' ? 'tg' : 'tc')} ${sel ? 'sel' : ''}" data-cell="${ti},${mi}" title="Click for every move"><b>${txt}</b><span>${esc(c.move)}${c.prio > 0 ? ' (+' + c.prio + ')' : ''}</span></div></td>`;
+  }).join('')}</tr>`).join('');
+  const sw = pre === 'd' ? ['var(--d-og)', 'var(--d-oc)', 'var(--d-tg)', 'var(--d-tc)'] : ['var(--g-og)', 'var(--g-oc)', 'var(--g-tg)', 'var(--g-tc)'];
+  const detail = state.sel ? (() => { const [ti, mi] = state.sel, cs = data[ti][mi]; const a = hit ? m.theirs[ti].name : DATA.myNames[mi], d = hit ? DATA.myNames[mi] : m.theirs[ti].name;
+    return `<div class="card detail"><h3>${esc(a)} → ${esc(d)}, every damaging move <span class="tag c">calc</span></h3><table><tbody>${cs.map(c => `<tr><td><span class="chip" style="background:${tc(c.type)}">${esc(c.type)}</span> ${esc(c.move)}${c.prio > 0 ? ' (+' + c.prio + ')' : ''}</td><td><b>${c.min}-${c.max}%</b></td><td class="small">${esc(c.ko || 'no KO within two hits')}</td></tr>`).join('') || '<tr><td>no damaging move</td></tr>'}</tbody></table></div>`; })() : '<p class="small">Click a cell to see every move behind it.</p>';
+  return `<div class="toggles"><button data-mode="hitMe" aria-pressed="${hit}">They hit me</button><button data-mode="iHit" aria-pressed="${!hit}">I hit them</button></div>
+  <div class="legend"><span><i style="background:${sw[0]}"></i>OHKO, every roll</span><span><i style="background:${sw[1]}"></i>OHKO? some rolls</span><span><i style="background:${sw[2]}"></i>2HKO, every roll</span><span><i style="background:${sw[3]}"></i>2HKO? some rolls</span><span><i style="background:var(--surface2)"></i>less: highest % shown</span></div>
+  <div class="scroll"><table class="heat"><thead><tr><th>${hit ? 'Their attacker ↓ / my Pokemon →' : 'Their Pokemon ↓ / my attacker →'}</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>${detail}`;
+}
+
+function speedView(m) {
+  const items = m.speed.map(s => ({ ...s, v: (s.side === 'me' ? state.twMe : state.twThem) ? s.tailwind : s.normal }));
+  items.sort((a, b) => state.tr ? a.v - b.v : b.v - a.v);
+  const max = Math.max(...items.map(i => i.v));
+  return `<div class="toggles"><button data-tog="tr" aria-pressed="${state.tr}">Trick Room</button><button data-tog="twMe" aria-pressed="${state.twMe}">My Tailwind</button><button data-tog="twThem" aria-pressed="${state.twThem}">Their Tailwind</button></div>
+  <div class="card"><div class="sp">${items.map(i => `<div>${i.side === 'me' ? '<span class="tag c">me</span> ' : '<span class="tag j">them</span> '}${esc(i.name)}</div><div class="bar2"><i style="width:${Math.round(100 * i.v / max)}%;background:var(--${i.side === 'me' ? 'me' : 'them'})"></i></div><b>${i.v}</b>`).join('')}</div>
+  <p class="small" style="margin:10px 0 0">${state.tr ? 'Trick Room: the slowest Pokemon moves first.' : 'The fastest Pokemon moves first.'} Priority moves ignore this order.</p></div>`;
+}
+
+function calcRow(c) {
+  const g = c.cls === 'speed' ? 'none' : c.cls === 'none' ? 'none' : (c.mine ? 'g' : 'd') + '-' + (c.cls === 'ohko-g' ? 'og' : c.cls === 'ohko-c' ? 'oc' : c.cls === 'two-g' ? 'tg' : 'tc');
+  return `<div>${esc(c.label)}</div><div class="v ${g}">${esc(c.value)}</div><div class="k">${esc(c.ko || '')}</div>`;
+}
+
+function vMatchup() {
+  const m = M(state.mid), [cls, lab] = level(m), p = m.plan, likely = new Set(p.likelyFour);
+  $('app').innerHTML = `<h1>${esc(m.title)}</h1>
+  <p class="sub"><span class="badge ${cls}">${lab}</span> &nbsp;${trust(m)} &nbsp;<a href="${esc(m.source)}" target="_blank" rel="noopener">team sheet</a> · fetched ${esc(m.fetched)}</p>
+  <div class="grid3">
+    <div class="tile"><div class="n" style="color:var(--bad)">${m.scores.myPokemonFacingGuaranteedOhko}<small> / 6</small></div><div class="l">of my Pokemon can be knocked out in one hit for sure</div></div>
+    <div class="tile"><div class="n" style="color:var(--ok)">${m.scores.theirPokemonIGuaranteedOhko}<small> / 6</small></div><div class="l">of their Pokemon I can knock out in one hit for sure</div></div>
+    <div class="tile"><div class="n" style="color:var(--them)">${m.scores.opposingFasterPairs}<small> / ${m.scores.pairsTotal}</small></div><div class="l">pairings where theirs is faster</div></div>
+    <div class="tile"><div class="n">${m.assumedCount}<small> / ${m.theirs.length}</small></div><div class="l">spreads assumed, not from the sheet</div></div>
+  </div>
+  <h2>Likely four <span class="tag j">Judgment</span></h2>
+  <div class="card"><div class="likely-box">${p.likelyFour.map(n => pill(n, (m.theirs.find(t => t.name === n) || {}).types)).join('')}<span class="tag ${p.confidence === 'Low' ? 'assumed' : 'real'}">${esc(p.confidence)} confidence</span></div><p style="margin:10px 0 0">${esc(p.reasoning)}</p></div>
+  <h2>Game plans <span class="tag j">Judgment</span></h2>
+  <div class="plans">${p.plans.map((pl, i) => `<div class="plan"><div class="plan-h"><b>${i + 1}. ${esc(pl.name)}</b></div>
+    <div><div class="slot"><span class="lbl">Lead</span><div>${pl.lead.map(myPill).join('')}</div></div><div class="slot"><span class="lbl">Back</span><div>${pl.back.map(myPill).join('')}</div></div></div>
+    <div>${pl.avoid.map(a => `<span class="pill bad">Avoid: ${esc(a)}</span>`).join('')}</div>
+    <p style="margin:0">${esc(pl.why)}</p>
+    <div class="calc">${pl.calcs.map(calcRow).join('')}</div></div>`).join('')}</div>
+  <h2>Their six</h2>
+  <div class="grid2">${m.theirs.map(t => pcard(t, likely.has(t.name))).join('')}</div>
+  <h2>Who hits whom <span class="tag c">Calc</span></h2>
+  <p class="sub">Best move in each pairing. Neutral field, full HP, no boosts.</p>${matrix(m)}
+  <h2>Speed <span class="tag c">Calc</span></h2>${speedView(m)}`;
+}
+
+function vPokemon() {
+  const q = state.q.trim().toLowerCase();
+  const rows = DATA.index.filter(e => !q || e.name.toLowerCase().includes(q) || e.types.some(t => t.toLowerCase().includes(q))).map(e => {
+    const cl = o => Object.entries(o).filter(([, v]) => v.cls !== 'none').sort((a, b) => ({ 'ohko-g': 0, 'ohko-c': 1, 'two-g': 2, 'two-c': 3 }[a[1].cls] - { 'ohko-g': 0, 'ohko-c': 1, 'two-g': 2, 'two-c': 3 }[b[1].cls]));
+    const chip2 = (n, v, pre) => `<span class="pill ${''}" title="${esc(v.move)} (${esc(v.id.toUpperCase())})" style="border-left-color:${tc((mon(n) || {}).types[0])}"><span class="cell ${pre}-${v.cls === 'ohko-g' ? 'og' : v.cls === 'ohko-c' ? 'oc' : v.cls === 'two-g' ? 'tg' : 'tc'}" style="display:inline;padding:0 6px;min-height:0;border-radius:5px;font-size:12px">${LAB[v.cls]}</span> ${esc(n)}</span>`;
+    return `<tr><td><b>${esc(e.name)}</b><div>${chips(e.types)}</div></td><td>${e.teams.map(t => `<a class="pill" href="#/m/${t.id}" style="text-decoration:none;color:inherit">${t.id.toUpperCase()}${t.assumed ? ' *' : ''}</a>`).join('')}</td><td>${cl(e.threatens).map(([n, v]) => chip2(n, v, 'd')).join('') || '<span class="small">none</span>'}</td><td>${cl(e.beatenBy).map(([n, v]) => chip2(n, v, 'g')).join('') || '<span class="small">none</span>'}</td></tr>`;
+  }).join('');
+  $('app').innerHTML = `<h1>Pokemon index</h1><p class="sub">Every opposing Pokemon across the ${DATA.matchups.length} teams. Type in the box at the top to filter. * means the spread is assumed.</p>
+  <div class="scroll"><table><thead><tr><th>Pokemon</th><th>On teams</th><th>Can knock out mine</th><th>My Pokemon that can knock it out</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No match.</td></tr>'}</tbody></table></div>
+  <p class="small">Red = it threatens my Pokemon, green = my Pokemon answers it. OHKO? and 2HKO? mean only some damage rolls. Hover a chip for the move.</p>`;
+}
+
+function render() {
+  nav();
+  ({ overview: vOverview, team: vTeam, matchup: vMatchup, pokemon: vPokemon })[state.view]();
+  $('brand').textContent = DATA.team;
+  $('foot').innerHTML = `Generated ${esc(DATA.generated.slice(0, 10))}. Numbers come from the damage calculator (@smogon/calc) and are listed in the output folder. Reasoning is marked <b>Judgment</b>. Limits: ${DATA.limits.map(esc).join(' ')}`;
+}
+
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g) { go(g.dataset.go); return; }
+  const mo = e.target.closest('[data-mode]'); if (mo) { state.mode = mo.dataset.mode; state.sel = null; render(); return; }
+  const c = e.target.closest('[data-cell]'); if (c) { state.sel = c.dataset.cell.split(',').map(Number); render(); return; }
+  const t = e.target.closest('[data-tog]'); if (t) { state[t.dataset.tog] = !state[t.dataset.tog]; render(); }
+});
+$('q').addEventListener('input', e => { state.q = e.target.value; if (state.view !== 'pokemon') go('pokemon'); else render(); });
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>

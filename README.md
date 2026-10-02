@@ -1,20 +1,21 @@
 # poketeam_analysis
 
-Test a **Pokemon Champions VGC (doubles)** team against the best recent teams, and get a written report with a game plan for each matchup.
+Test a **Pokemon Champions VGC (doubles)** team against the best recent teams, and get an interactive report with a game plan for each matchup.
 
 It uses a real damage calculator, so the numbers are exact. It never makes up data: anything it cannot find is shown as **UNKNOWN**, and any spread it had to fill in is marked **ASSUMED**.
 
 ## What you get
 
-For your team, a folder `output/<team name>/` with:
+One file: **`output/<team name>/REPORT.html`**. Double-click it to open it in your browser. It works offline and on a phone.
 
-| File | What it tells you |
+| Page | What it shows |
 |---|---|
-| `REPORT.md` | **Start here.** Team review, the likely four Pokemon the opponent brings, 3 to 4 game plans per matchup, and your worst matchups. Every statement is marked **CALC** (from the calculator) or **JUDGMENT** (reasoning). |
-| `REPORT-sources.md` | Where every number in the report comes from. |
-| `THREATS.md` | What outspeeds you, what knocks out your Pokemon, and what you knock out, overall and per opposing team. |
-| `TEAM-REVIEW.md` | Type weaknesses, coverage, speed and support moves. |
-| one folder per opposing team | Full damage, speed and stat tables for that matchup. |
+| **Overview** | All opposing teams ranked from hardest to easiest, with the likely four Pokemon each one brings and how much to trust the data. |
+| **My team** | Your six Pokemon, weaknesses by type, what your moves cover, speed, and a short reading of the team. |
+| **One tab per opposing team** | Their six Pokemon, a colour grid of who knocks out whom (click a cell for every move), a speed ladder (Trick Room and Tailwind switches), and 3 to 4 game plans with leads, backline, what to avoid and the key numbers. |
+| **Pokemon index** | Type any Pokemon in the search box to see which teams carry it, which of your Pokemon it threatens and which answer it. |
+
+Behind it, the same folder holds the raw tables (`damage.md`, `speed.md`, `stats.md` per opposing team), `THREATS.md` and `TEAM-REVIEW.md`.
 
 ## Set up (once)
 
@@ -28,7 +29,7 @@ npm run setup
 
 ## Use it
 
-Put your team in `teams/my-team.txt` in Pokemon Showdown export format. In Champions the `EVs:` line holds **stat points** (at most 32 per stat, 66 in total) and there are no IVs. A Pokemon holding its Mega Stone is calculated as its Mega form.
+Put your team in `teams/my-team.txt` in Pokemon Showdown export format. In Champions the `EVs:` line holds **stat points** (at most 32 per stat, 66 in total) and there are no IVs. A Pokemon holding its Mega Stone is calculated as its Mega form, with the Mega form's ability.
 
 The easy way: open Claude Code in this folder and say **`/analyze-team`**, then paste your team.
 
@@ -38,7 +39,8 @@ The manual way:
 |---|---|
 | Get the latest top teams and spreads | `node src/fetch-data.js fetch`, read `data/staging/SUMMARY.md`, then `node src/fetch-data.js promote` |
 | Calculate my team against all of them | `npm run analyze` |
-| Rebuild the report after changing the team | `npm run analyze`, then `npm run report` |
+| Rebuild the report page | `npm run report` (needs `output/<team>/REPORT-plans.json`, the game plans, which the `vgc-analyst` agent writes) |
+| Open the report from a local server | `npm run open`, then go to http://localhost:4173 |
 | Check that everything works | `npm test` |
 | Use another team file | `node src/analyze.js teams/other.txt` |
 | Add weather, Tailwind, screens or Intimidate | `node src/analyze.js --scenario src/scenarios/example-sun-tailwind.json` |
@@ -57,7 +59,7 @@ Spreads that a team's paste does not show are filled in with the **most common s
 2. No made-up data. Missing means UNKNOWN.
 3. Every outside fact is saved with its source link and fetch date.
 4. Assumed spreads are marked ASSUMED everywhere.
-5. In the report, each statement is CALC or JUDGMENT, and each number is filled in by code from a file in `output/`. A number typed by hand makes the report fail to build.
+5. In the report, reasoning is marked **Judgment** and calculator results are marked **Calc**. The game plans are data, not prose: a number typed by hand, an unknown Pokemon or a calc that cannot be found makes the page fail to build.
 
 The full list is in `CLAUDE.md`.
 
@@ -75,24 +77,14 @@ The full list is in `CLAUDE.md`.
 | `teams/` | Your team files (not uploaded to GitHub) |
 | `meta/` | Opponent teams, one file each, with source and date (not uploaded) |
 | `data/` | Cached downloads and spread statistics (not uploaded) |
-| `output/` | Everything the tool produces (not uploaded) |
-| `src/` | The scripts |
-| `tests/` | Automatic checks against the official calculator test suite |
+| `output/` | Everything the tool produces, including `REPORT.html` (not uploaded) |
+| `src/` | The scripts. `report-ui.html` is the page template. |
+| `tests/` | Automatic checks, including a comparison with the official calculator test suite |
 | `.claude/` | The `/analyze-team` command and the `vgc-analyst` report agent |
-
-## Progress
-
-| Step | State |
-|---|---|
-| Calculator engine, doubles mechanics, Champions stat points | done |
-| Opponent team format and missing-spread rule | done |
-| Fetching teams and spreads | done |
-| Matchup tables and threat summary | done |
-| Written report with traceable numbers | done |
 
 ## Troubleshooting
 
 - **"Calculator not installed"**: run `npm run setup`.
 - **"No opponent teams in /meta"**: run the fetch step above.
 - **A team is skipped as UNKNOWN**: one of its Pokemon has no spread data in any source. Add its spread to the team file by hand, or wait for more data.
-- **The report will not build**: the message names the line. It is either a number typed by hand, a statement without CALC or JUDGMENT, or a source that cannot be found.
+- **The report will not build**: the message names the problem: a number in the plans text, a Pokemon that is not on the team, or a calc that is not in the damage tables.

@@ -19,10 +19,11 @@ function readUsage(usageDir, g, species) {
     const d = JSON.parse(fs.readFileSync(f, 'utf8'));
     if (!d.source_url || !d.fetched || !Array.isArray(d.spreads)) throw new Error(`${f}: usage file must have source_url, fetched and spreads[].`);
     for (const s of d.spreads) {
-      const sum = Object.values(s.points || {}).reduce((a, b) => a + b, 0);
-      if (!s.nature || typeof s.usage_pct !== 'number' || sum > 66 || Object.values(s.points).some(v => v > 32))
-        throw new Error(`${f}: bad spread entry ${JSON.stringify(s)} (need nature, usage_pct, points with max 32 each and 66 total - are these old-style EVs?).`);
+      const sum = Object.values(s.points || {}).reduce((x, y) => x + y, 0);
+      if (typeof s.usage_pct !== 'number' || (s.nature !== null && typeof s.nature !== 'string') || sum > 66 || Object.values(s.points).some(v => v > 32))
+        throw new Error(`${f}: bad spread entry ${JSON.stringify(s)} (need usage_pct, nature or null, points with max 32 each and 66 total - are these old-style EVs?).`);
     }
+    d.natures = d.natures || [];
     return { file: f, ...d };
   }
   return null;
@@ -39,15 +40,23 @@ function applyAssumptions(set, gen, { usageDir = path.join(__dirname, '..', 'dat
   const parts = [...(needNature ? ['nature'] : []), ...(needPoints ? ['stat points'] : [])];
 
   const usage = readUsage(usageDir, g, set.species);
-  let pick = null;
+  const best = arr => (arr.length ? arr.reduce((m, x) => (x.usage_pct > m.usage_pct ? x : m)) : null); // ties -> first listed
+  let nature = set.nature, points = set.hasEvs ? set.evs : null, usagePct = null, how = '';
   if (usage) {
-    const matching = usage.spreads.filter(s => (needNature || s.nature === set.nature) && (needPoints || samePoints(s.points, set.evs)));
-    if (matching.length) pick = matching.reduce((best, s) => (s.usage_pct > best.usage_pct ? s : best)); // ties -> first listed
+    if (needPoints) {
+      // prefer spreads paired with the given nature; fall back to spreads whose nature the source does not pair
+      const s1 = best(usage.spreads.filter(s => !nature || s.nature === nature)) || best(usage.spreads.filter(s => s.nature === null));
+      if (s1) { points = { ...s1.points }; usagePct = s1.usage_pct; if (!nature) nature = s1.nature; how = s1.nature === null ? 'most common points spread (source does not pair it with a nature)' : 'most common spread'; }
+    } else if (needNature) {
+      const s1 = best(usage.spreads.filter(s => s.nature && samePoints(s.points, set.evs)));
+      if (s1) { nature = s1.nature; usagePct = s1.usage_pct; how = 'most common nature for the given points'; }
+    }
+    if (!nature && needNature) { const n1 = best(usage.natures); if (n1) { nature = n1.nature; usagePct = usagePct ?? n1.usage_pct; how += (how ? '; ' : '') + 'nature = most common nature overall'; } }
   }
-  if (pick) {
-    if (needNature) set.nature = pick.nature;
-    if (needPoints) { set.evs = { ...pick.points }; set.hasEvs = true; }
-    set.assumption = { parts, source: 'usage data', url: usage.source_url, fetched: usage.fetched, usagePct: pick.usage_pct };
+  if (usage && nature && points) {
+    if (needNature) set.nature = nature;
+    if (needPoints) { set.evs = { ...points }; set.hasEvs = true; }
+    set.assumption = { parts, source: 'usage data', how, url: usage.source_url, fetched: usage.fetched, format: usage.format, month: usage.dataset_month, usagePct };
   } else {
     throw new Error(`${set.label}: spread (${parts.join(' and ')}) is UNKNOWN. No usage data${usage ? ' matches what the file already gives' : ' found'} for ${set.species} in ${usageDir}. Default spreads are never used: fetch usage data (Phase 3) or write the spread in the team file.`);
   }

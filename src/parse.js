@@ -28,7 +28,8 @@ function parseSet(block, g, ruleset, strict, n) {
   const nick = first.match(/^(.*) \(([^()]+)\)$/);
   if (nick) { nickname = nick[1].trim(); species = nick[2].trim(); }
 
-  const sp = g.species.get(toID(species));
+  const ALIAS = { aegislash: 'Aegislash-Shield' }; // Showdown base-forme names the calc stores under a forme
+  const sp = g.species.get(toID(ALIAS[toID(species)] || species));
   if (!sp) fail(n, species, `species "${species}" not found in calc data.`);
   const set = {
     species: sp.name, label: nickname || sp.name, item, ability: undefined, nature: undefined,
@@ -44,6 +45,7 @@ function parseSet(block, g, ruleset, strict, n) {
       if (key === 'ability') set.ability = val;
       else if (key === 'level') set.level = parseInt(val, 10);
       else if (key === 'tera type') set.teraType = val;
+      else if (['shiny', 'happiness', 'pokeball', 'gender', 'dynamax level', 'gigantamax', 'hidden power'].includes(key)) continue; // cosmetic or irrelevant here
       else if (key === 'assumed') set.assumed = /^(yes|true)$/i.test(val);
       else if (key === 'evs' || key === 'ivs') {
         if (key === 'evs') set.hasEvs = true;

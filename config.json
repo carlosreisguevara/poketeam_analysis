@@ -6,5 +6,14 @@
   "regulation_set_on": "2026-10-01",
   "legal_pool_file": "data/legal-pool.json",
   "legal_pool_status": "UNKNOWN - not fetched yet (needs a public source, see Phase 3)",
-  "note": "When the regulation changes, tell Claude; the legal pool file is re-fetched with source URL and date."
+  "note": "When the regulation changes, tell Claude; the legal pool file is re-fetched with source URL and date.",
+  "pikalytics_format": "gen9championsvgc2026regmc",
+  "teams_sheet": {
+    "id": "1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw",
+    "gid": "2001945654",
+    "name": "VGCPastes Repository (Champions M-C)"
+  },
+  "regulation_events": [
+    "Baltimore Regional 2027"
+  ]
 }

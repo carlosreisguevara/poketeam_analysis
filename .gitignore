@@ -7,3 +7,6 @@ meta/*.txt
 !meta/_*
 # Scratch
 *.log
+data/raw/
+data/staging/
+.scratch/

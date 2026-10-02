@@ -72,6 +72,9 @@ function parseSet(block, g, ruleset, strict, n) {
     if (stone && stone[set.species]) {
       if (set.label === set.species) set.label = stone[set.species];
       set.species = stone[set.species];
+      // The paste shows the ability BEFORE Mega Evolution; the Mega form has its own ability.
+      const mega = g.species.get(toID(set.species));
+      if (mega && mega.abilities && mega.abilities[0]) { set.preMegaAbility = set.ability; set.ability = mega.abilities[0]; }
     }
   }
   if (set.ability && !g.abilities.get(toID(set.ability))) fail(n, set.label, `ability "${set.ability}" not found in calc data.`);

@@ -1,54 +1,98 @@
 # poketeam_analysis
 
-Evaluate a Pokemon Champions VGC (doubles) team with a real damage calculator (@smogon/calc). All numbers come from code. Nothing is estimated or invented, and missing data is reported as UNKNOWN.
+Test a **Pokemon Champions VGC (doubles)** team against the best recent teams, and get a written report with a game plan for each matchup.
 
-## Use it (no coding needed)
+It uses a real damage calculator, so the numbers are exact. It never makes up data: anything it cannot find is shown as **UNKNOWN**, and any spread it had to fill in is marked **ASSUMED**.
 
-1. Install **Node.js LTS** from https://nodejs.org (Claude can also do this for you).
-2. Download this repository (green **Code** button, then **Download ZIP**, or `git clone`) and open the folder in **Claude Code**.
-3. Tell Claude: `/analyze-team` and paste your team (Showdown export format). Claude sets everything up on the first run.
+## What you get
 
-Prefer the terminal?
+For your team, a folder `output/<team name>/` with:
 
-```bash
-npm run setup      # first time only: installs the calculator and runs the tests
-npm run analyze    # analyzes teams/my-team.txt against every team in /meta
-```
+| File | What it tells you |
+|---|---|
+| `REPORT.md` | **Start here.** Team review, the likely four Pokemon the opponent brings, 3 to 4 game plans per matchup, and your worst matchups. Every statement is marked **CALC** (from the calculator) or **JUDGMENT** (reasoning). |
+| `REPORT-sources.md` | Where every number in the report comes from. |
+| `THREATS.md` | What outspeeds you, what knocks out your Pokemon, and what you knock out, overall and per opposing team. |
+| `TEAM-REVIEW.md` | Type weaknesses, coverage, speed and support moves. |
+| one folder per opposing team | Full damage, speed and stat tables for that matchup. |
 
-To test another team, change the file in `teams/` (or pass a different file: `node src/analyze.js teams/other.txt`) and run it again. Nothing else needs to be redone.
+## Set up (once)
 
-## Team format
-
-Showdown export format. In Champions, the `EVs:` line holds **stat points** (max 32 per stat, 66 total) and there are no IVs. A Pokemon holding its Mega Stone is calculated as its Mega form. See `meta/_FORMAT.md` for opponent teams.
-
-## Rules the tool follows
-
-See `CLAUDE.md` (hard rules and phases) and `RULES-assumed-spreads.md`. In short: numbers only from the calculator, every external fact saved with source URL and date, spreads that are not in the file come only from real usage data and are marked ASSUMED, never from defaults.
-
-## Status
-
-| Phase | What | State |
-|---|---|---|
-| 0 | Setup | done |
-| 1 | Calc engine (damage, KO, speed, doubles mechanics) | done, tested against the official calc test suite |
-| 2 | Opponent team format and missing-spread rule | done |
-| 3 | Fetch top teams and most common spreads (VGCPastes sheet + Pokepaste) | done: `node src/fetch-data.js fetch`, review `data/staging/SUMMARY.md`, then `promote` |
-| 4 | Matchup runner and key-threat summary | done: `npm run analyze` writes tables per matchup and `output/<team>/THREATS.md` |
-| 5 | Written report (agent `vgc-analyst`) | not built |
-
-Known limits: the calculator's data is Scarlet/Violet data, so Champions-specific changes to moves, abilities or Pokemon are UNKNOWN unless the calculator already has them. Weather and terrain from abilities are not applied automatically (set them in a scenario file).
-
-## Fetching data
-
-The sheet and the events counted as the current regulation are set in `config.json` (`teams_sheet`, `regulation_events`). The sheet has no regulation column, so you name the events. Spreads are the most common ones among team lists of those events only. `src/fetch/` holds optional Pikalytics and Limitless readers (Pikalytics has no spreads for M-C).
+1. Install **Node.js** (the "LTS" version) from https://nodejs.org.
+2. Download this project: green **Code** button, then **Download ZIP**, and unzip it. (Or use `git clone`.)
+3. Open the folder in **Claude Code**. Setup runs the first time you ask for an analysis. To do it yourself:
 
 ```bash
-node src/fetch-data.js fetch     # downloads, caches with source and date, stages for review
-node src/fetch-data.js promote   # after you reviewed data/staging/SUMMARY.md
+npm run setup
 ```
 
-## Tests
+## Use it
 
-```bash
-npm test
-```
+Put your team in `teams/my-team.txt` in Pokemon Showdown export format. In Champions the `EVs:` line holds **stat points** (at most 32 per stat, 66 in total) and there are no IVs. A Pokemon holding its Mega Stone is calculated as its Mega form.
+
+The easy way: open Claude Code in this folder and say **`/analyze-team`**, then paste your team.
+
+The manual way:
+
+| I want to... | Run |
+|---|---|
+| Get the latest top teams and spreads | `node src/fetch-data.js fetch`, read `data/staging/SUMMARY.md`, then `node src/fetch-data.js promote` |
+| Calculate my team against all of them | `npm run analyze` |
+| Rebuild the report after changing the team | `npm run analyze`, then `npm run report` |
+| Check that everything works | `npm test` |
+| Use another team file | `node src/analyze.js teams/other.txt` |
+| Add weather, Tailwind, screens or Intimidate | `node src/analyze.js --scenario src/scenarios/example-sun-tailwind.json` |
+
+Changing your team never means starting over: fetched data is saved, and each command only redoes its own step.
+
+## Which teams count as "recent"
+
+The data comes from the VGCPastes team sheet (a public Google Sheet) and Pokepaste. The sheet does not say which regulation a team was played under, so you name the events in `config.json` under `regulation_events`. When the regulation changes, change that list and fetch again.
+
+Spreads that a team's paste does not show are filled in with the **most common spread** for that Pokemon among those events. If an event has no data for a Pokemon, it falls back to older events, clearly labelled. If there is no data at all, the Pokemon is UNKNOWN and that team is not used. Default spreads are never used. Details: `RULES-assumed-spreads.md`.
+
+## The rules it follows
+
+1. Every number comes from the calculator (`@smogon/calc`), never from guessing.
+2. No made-up data. Missing means UNKNOWN.
+3. Every outside fact is saved with its source link and fetch date.
+4. Assumed spreads are marked ASSUMED everywhere.
+5. In the report, each statement is CALC or JUDGMENT, and each number is filled in by code from a file in `output/`. A number typed by hand makes the report fail to build.
+
+The full list is in `CLAUDE.md`.
+
+## Limits you should know
+
+- The calculator uses Scarlet/Violet data. Changes made in Champions are UNKNOWN unless the calculator already has them.
+- Damage assumes a neutral field, full HP and no boosts. Weather and terrain from abilities, Intimidate, Sand Rush, screens and Focus Sash are not applied unless you pass a scenario, and Focus Sash is never applied.
+- Speed order ignores move priority.
+- "Likely four" Pokemon for each opponent is a guess. Open team sheets show six Pokemon, not which four are brought.
+
+## Folders
+
+| Folder | Contents |
+|---|---|
+| `teams/` | Your team files (not uploaded to GitHub) |
+| `meta/` | Opponent teams, one file each, with source and date (not uploaded) |
+| `data/` | Cached downloads and spread statistics (not uploaded) |
+| `output/` | Everything the tool produces (not uploaded) |
+| `src/` | The scripts |
+| `tests/` | Automatic checks against the official calculator test suite |
+| `.claude/` | The `/analyze-team` command and the `vgc-analyst` report agent |
+
+## Progress
+
+| Step | State |
+|---|---|
+| Calculator engine, doubles mechanics, Champions stat points | done |
+| Opponent team format and missing-spread rule | done |
+| Fetching teams and spreads | done |
+| Matchup tables and threat summary | done |
+| Written report with traceable numbers | done |
+
+## Troubleshooting
+
+- **"Calculator not installed"**: run `npm run setup`.
+- **"No opponent teams in /meta"**: run the fetch step above.
+- **A team is skipped as UNKNOWN**: one of its Pokemon has no spread data in any source. Add its spread to the team file by hand, or wait for more data.
+- **The report will not build**: the message names the line. It is either a number typed by hand, a statement without CALC or JUDGMENT, or a source that cannot be found.

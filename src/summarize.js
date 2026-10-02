@@ -45,7 +45,19 @@ function summarize(outRoot) {
       cells.forEach(c => { const o = c.b; (c.first === info.teamB.name ? faster : c.first === 'TIE' ? tie : slower).push({ pokemon: o, theirSpeed: c.speedB }); });
       return { pokemon: p, mySpeed: cells[0].speedA, outspeedsMe: faster, tiesMe: tie, iOutspeed: slower };
     });
-    result.matchups.push({ name: m, source: info.sources.B, assumedPokemon: theirs.filter(isAssumed), myAssumed: mine.filter(isAssumed), killsMe, iKill, speed, notes: info.notes });
+    const cnt = (obj, f) => Object.values(obj).filter(l => l.some(f)).length;
+    const scores = {
+      myPokemonFacingGuaranteedOhko: cnt(killsMe, e => e.n === 1 && e.kind === 'g'),
+      myPokemonFacingAnyOhko: cnt(killsMe, e => e.n === 1),
+      myPokemonFacingAny2hkoOrBetter: cnt(killsMe, () => true),
+      theirPokemonIGuaranteedOhko: cnt(iKill, e => e.n === 1 && e.kind === 'g'),
+      theirPokemonIAnyOhko: cnt(iKill, e => e.n === 1),
+      theirPokemonIAny2hkoOrBetter: cnt(iKill, () => true),
+      opposingFasterPairs: speed.reduce((a, x) => a + x.outspeedsMe.length, 0),
+      pairsTotal: speed.reduce((a, x) => a + x.outspeedsMe.length + x.tiesMe.length + x.iOutspeed.length, 0),
+      opposingPokemon: theirs.length,
+    };
+    result.matchups.push({ name: m, scores, source: info.sources.B, assumedPokemon: theirs.filter(isAssumed), myAssumed: mine.filter(isAssumed), killsMe, iKill, speed, notes: info.notes });
   }
   fs.writeFileSync(path.join(outRoot, 'threats.json'), JSON.stringify(result, null, 2));
   fs.writeFileSync(path.join(outRoot, 'THREATS.md'), render(result));

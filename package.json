@@ -8,10 +8,12 @@
   },
   "scripts": {
     "setup": "node src/setup.js",
-    "test": "node tests/run-tests.js && node tests/run-phase2-tests.js && node tests/run-phase4-tests.js",
+    "test": "node tests/run-tests.js && node tests/run-phase2-tests.js && node tests/run-phase4-tests.js && node tests/run-phase5-tests.js",
     "analyze": "node src/analyze.js",
     "check-meta": "node src/meta-check.js",
-    "threats": "node src/summarize.js output/my-team"
+    "threats": "node src/summarize.js output/my-team",
+    "review": "node src/team-review.js",
+    "report": "node src/team-review.js && node src/build-report.js"
   },
   "license": "UNLICENSED",
   "dependencies": {

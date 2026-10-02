@@ -72,6 +72,19 @@ upstreamCase('6. Protect blocks damage (gen 9)', 9, 'Snorlax\n- Hyper Beam', 'Ch
   check('8. Champions: 32 stat points = exactly +32 stat (HP and Def)', s32.hp - s0.hp === 32 && s32.def - s0.def === 32, `HP ${s0.hp}->${s32.hp}, Def ${s0.def}->${s32.def}`);
 }
 
+// ---- Mega Stone holders use the Mega form's ability ----
+{
+  const g = Generations.get(9);
+  const mk = (sp, item, ab) => parseTeam(`${sp} @ ${item}
+Ability: ${ab}
+Level: 50
+Hardy Nature
+- Protect`, { gen: 9, ruleset: 'champions' })[0];
+  const a = mk('Charizard', 'Charizardite Y', 'Blaze'), b = mk('Salamence', 'Salamencite', 'Intimidate');
+  check('14. Mega Charizard Y gets its Mega ability, not Blaze', a.species === 'Charizard-Mega-Y' && a.ability === g.species.get('charizardmegay').abilities[0] && a.ability !== 'Blaze', a.ability);
+  check('15. Mega Salamence gets its Mega ability, not Intimidate', b.species === 'Salamence-Mega' && b.ability === g.species.get('salamencemega').abilities[0] && b.ability !== 'Intimidate', b.ability);
+}
+
 // ---- Parser must fail loudly ----
 function mustThrow(name, txt, ruleset = 'champions') {
   let msg = null; try { parseTeam(txt, { gen: 9, ruleset }); } catch (e) { msg = e.message; }

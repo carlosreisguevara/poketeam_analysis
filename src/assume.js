@@ -41,22 +41,28 @@ function applyAssumptions(set, gen, { usageDir = path.join(__dirname, '..', 'dat
 
   const usage = readUsage(usageDir, g, set.species);
   const best = arr => (arr.length ? arr.reduce((m, x) => (x.usage_pct > m.usage_pct ? x : m)) : null); // ties -> first listed
-  let nature = set.nature, points = set.hasEvs ? set.evs : null, usagePct = null, how = '';
-  if (usage) {
+  const attempt = (spreads, natures) => {
+    let nature = set.nature, points = set.hasEvs ? set.evs : null, usagePct = null, how = '';
     if (needPoints) {
       // prefer spreads paired with the given nature; fall back to spreads whose nature the source does not pair
-      const s1 = best(usage.spreads.filter(s => !nature || s.nature === nature)) || best(usage.spreads.filter(s => s.nature === null));
+      const s1 = best(spreads.filter(s => !nature || s.nature === nature)) || best(spreads.filter(s => s.nature === null));
       if (s1) { points = { ...s1.points }; usagePct = s1.usage_pct; if (!nature) nature = s1.nature; how = s1.nature === null ? 'most common points spread (source does not pair it with a nature)' : 'most common spread'; }
     } else if (needNature) {
-      const s1 = best(usage.spreads.filter(s => s.nature && samePoints(s.points, set.evs)));
+      const s1 = best(spreads.filter(s => s.nature && samePoints(s.points, set.evs)));
       if (s1) { nature = s1.nature; usagePct = s1.usage_pct; how = 'most common nature for the given points'; }
     }
-    if (!nature && needNature) { const n1 = best(usage.natures); if (n1) { nature = n1.nature; usagePct = usagePct ?? n1.usage_pct; how += (how ? '; ' : '') + 'nature = most common nature overall'; } }
+    if (!nature && needNature) { const n1 = best(natures || []); if (n1) { nature = n1.nature; usagePct = usagePct ?? n1.usage_pct; how += (how ? '; ' : '') + 'nature = most common nature overall'; } }
+    return nature && points ? { nature, points, usagePct, how } : null;
+  };
+  let res = null, fallback = false;
+  if (usage) {
+    res = attempt(usage.spreads, usage.natures);
+    if (!res && Array.isArray(usage.fallback_spreads)) { res = attempt(usage.fallback_spreads, []); fallback = !!res; }
   }
-  if (usage && nature && points) {
-    if (needNature) set.nature = nature;
-    if (needPoints) { set.evs = { ...points }; set.hasEvs = true; }
-    set.assumption = { parts, source: 'usage data', how, url: usage.source_url, fetched: usage.fetched, format: usage.format, month: usage.dataset_month, usagePct };
+  if (res) {
+    if (needNature) set.nature = res.nature;
+    if (needPoints) { set.evs = { ...res.points }; set.hasEvs = true; }
+    set.assumption = { parts, source: fallback ? 'usage data from OLDER REGULATION events (no current-regulation data)' : 'usage data', how: res.how, url: usage.source_url, fetched: usage.fetched, format: fallback ? usage.fallback_note : usage.format, month: usage.dataset_month, usagePct: res.usagePct, olderRegulation: fallback };
   } else {
     throw new Error(`${set.label}: spread (${parts.join(' and ')}) is UNKNOWN. No usage data${usage ? ' matches what the file already gives' : ' found'} for ${set.species} in ${usageDir}. Default spreads are never used: fetch usage data (Phase 3) or write the spread in the team file.`);
   }

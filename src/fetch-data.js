@@ -67,9 +67,10 @@ async function fetchCmd() {
   const only = (arg('--only-events') ? arg('--only-events').split(';') : cfg.regulation_events) || [];
   need(only.length, 'no regulation events set: add "regulation_events" to config.json or pass --only-events "A;B"');
   const allCount = teams.length;
-  for (let i = teams.length - 1; i >= 0; i--) if (!only.includes(teams[i].event)) teams.splice(i, 1);
-  need(teams.length, `none of the sheet rows belong to ${only.join(', ')}`);
-  console.log(`Using only ${only.join(' + ')}: ${teams.length} of ${allCount} teams`);
+  for (const t of teams) t.mc = only.includes(t.event);
+  const mcCount = teams.filter(t => t.mc).length;
+  need(mcCount, `none of the sheet rows belong to ${only.join(', ')}`);
+  console.log(`Current regulation (${only.join(' + ')}): ${mcCount} of ${allCount} teams; the rest are only used as a labelled fallback`);
   console.log(`Sheet: ${teams.length} teams, ${teams.filter(t => t.paste).length} with a Pokepaste link (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
 
   // 2) every paste (cached), 4 at a time
@@ -93,16 +94,16 @@ async function fetchCmd() {
   console.log(`Pastes read: ${pastes.length - failed.length}/${pastes.length} (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
   need(failed.length <= pastes.length * 0.2, `${failed.length} of ${pastes.length} pastes failed:\n${failed.slice(0, 5).join('\n')}`);
 
-  // 3) parse, count spreads per species
-  const stats = {}; const bad = []; let withSpread = 0;
+  // 3) parse, count spreads per species (current-regulation events vs. older ones)
+  const stats = {}, oldStats = {}; const bad = []; let withSpread = 0;
   for (const t of pastes) {
     if (!t.text) continue;
     try { t.sets = parseTeam(t.text, { gen: 9, ruleset: 'champions', strict: false }); } catch (e) { bad.push(`${t.id}: ${e.message}`); continue; }
-    if (t.sets.some(s => s.hasEvs)) withSpread++;
+    if (t.mc && t.sets.some(s => s.hasEvs)) withSpread++;
     for (const s of t.sets) {
       if (!s.hasEvs || !s.nature) continue;
       const key = `${s.nature}|${JSON.stringify(Object.fromEntries(Object.entries(s.evs).filter(([, v]) => v).sort()))}`;
-      const e = (stats[s.species] ||= { n: 0, spreads: {} });
+      const e = ((t.mc ? stats : oldStats)[s.species] ||= { n: 0, spreads: {} });
       e.n++; (e.spreads[key] ||= { nature: s.nature, points: JSON.parse(key.split('|')[1]), count: 0, teams: [] }).count++;
       e.spreads[key].teams.push(t.id);
     }
@@ -111,15 +112,17 @@ async function fetchCmd() {
 
   // 4) usage files (most common spread first)
   const fetched = today();
+  const list = e => (e ? Object.values(e.spreads).sort((a, b) => b.count - a.count).map(x => ({ nature: x.nature, points: x.points, usage_pct: Math.round((x.count / e.n) * 1000) / 10, count: x.count })) : []);
   const usageFor = sp => {
-    const e = stats[sp]; if (!e) return null;
-    const spreads = Object.values(e.spreads).sort((a, b) => b.count - a.count).map(s => ({ nature: s.nature, points: s.points, usage_pct: Math.round((s.count / e.n) * 1000) / 10, count: s.count }));
-    return { source_url: sheetUrl, fetched, site: 'VGCPastes repository (Champions M-C) via Pokepaste', format: 'gen9championsvgc2026regmc', dataset_month: null, pokemon: sp, sample_games: e.n, sample_unit: 'team lists with EVs', spreads, natures: [] };
+    const e = stats[sp], o = oldStats[sp]; if (!e && !o) return null;
+    return { source_url: sheetUrl, fetched, site: 'VGCPastes repository (Champions M-C) via Pokepaste', format: 'gen9championsvgc2026regmc: ' + only.join(' + '), dataset_month: null,
+      pokemon: sp, sample_games: e ? e.n : 0, sample_unit: 'team lists with EVs', spreads: list(e), natures: [],
+      fallback_spreads: list(o), fallback_samples: o ? o.n : 0, fallback_note: 'older-regulation events in the same sheet (all events except ' + only.join(' + ') + ')' };
   };
-  for (const sp of Object.keys(stats)) write(dir('data', 'staging', 'usage', `${idOf(sp)}.json`), usageFor(sp));
+  for (const sp of new Set([...Object.keys(stats), ...Object.keys(oldStats)])) write(dir('data', 'staging', 'usage', `${idOf(sp)}.json`), usageFor(sp));
 
   // 5) meta teams: top finishers of the most recent events
-  const placed = teams.filter(t => t.text && ranks.includes(t.rank) && t.sets && !Number.isNaN(t.date.getTime()));
+  const placed = teams.filter(t => t.mc && t.text && ranks.includes(t.rank) && t.sets && !Number.isNaN(t.date.getTime()));
   const events = [...new Map(placed.map(t => [t.event, t.date])).entries()].sort((a, b) => b[1] - a[1]).slice(0, nEvents).map(e => e[0]);
   const chosen = placed.filter(t => events.includes(t.event)).sort((a, b) => b.date - a.date);
   need(chosen.length, 'no Champion/Runner Up teams found');
@@ -127,7 +130,7 @@ async function fetchCmd() {
   for (const t of chosen) {
     const header = `# Name: ${t.event} - ${t.rank} (${t.id})\n# Source: ${t.paste}\n# Fetched: ${fetched}\n# Format: Regulation M-C (VGCPastes repository ${t.id})\n# Result: ${t.rank}, ${t.dateText}\n# Tournament source: ${t.source || 'n/a'}\n# Found via: ${sheetUrl}\n\n`;
     write(dir('data', 'staging', 'meta', `${slug(t.event)}-${slug(t.rank)}-${t.id.toLowerCase()}.txt`), header + t.text.trim() + '\n');
-    for (const s of t.sets) if ((!s.hasEvs || !s.nature) && !stats[s.species] && !stats[idOf(s.species)]) missing.add(s.species);
+    for (const s of t.sets) if ((!s.hasEvs || !s.nature) && !stats[s.species] && !oldStats[s.species]) missing.add(s.species);
   }
 
   const report = { fetched, sheetUrl, sheetTeams: teams.length, pastes: pastes.length, pastesFailed: failed, unparseable: bad, pastesWithSpreads: withSpread, events, chosen: chosen.map(t => ({ id: t.id, event: t.event, rank: t.rank, date: t.dateText, paste: t.paste, pokemon: t.sets.map(s => s.species), hasSpreads: t.sets.some(s => s.hasEvs) })), missingSpreadData: [...missing] };
@@ -136,7 +139,19 @@ async function fetchCmd() {
   for (const t of report.chosen) md += `| ${t.id} | ${t.event} | ${t.rank} | ${t.date} | ${t.hasSpreads ? 'yes' : 'no (will use most common spreads, ASSUMED)'} | ${t.pokemon.join(', ')} |\n`;
   const used = [...new Set(chosen.flatMap(t => t.sets.map(s => s.species)))].sort();
   md += `\n## Most common spread per Pokemon in the staged teams (from ${withSpread} team lists with EVs)\n\n| Pokemon | Samples | Most common spread | Share |\n|---|---|---|---|\n`;
-  for (const sp of used) { const u = usageFor(sp); md += u ? `| ${sp} | ${u.sample_games}${u.sample_games < 3 ? ' LOW SAMPLE' : ''} | ${u.spreads[0].nature}, ${JSON.stringify(u.spreads[0].points)} | ${u.spreads[0].usage_pct}% |\n` : `| ${sp} | 0 | UNKNOWN (no spread data) | |\n`; }
+  for (const sp of used) { const u = usageFor(sp); const t0_ = u && u.spreads[0]; md += t0_ ? `| ${sp} | ${u.sample_games}${u.sample_games < 3 ? ' LOW SAMPLE' : ''} | ${t0_.nature}, ${JSON.stringify(t0_.points)} | ${t0_.usage_pct}% |
+` : `| ${sp} | 0 | ${u && u.fallback_spreads.length ? 'none in current regulation (older-regulation fallback: ' + u.fallback_samples + ' samples)' : 'UNKNOWN (no spread data)'} | |
+`; }
+  // exactly what will be ASSUMED in each staged team, and from where
+  md += '\n## Spreads that will be ASSUMED in the staged teams\n\n| Team | Pokemon | Filled | From | Samples/share |\n|---|---|---|---|---|\n';
+  const problems2 = [];
+  for (const f of fs.readdirSync(dir('data', 'staging', 'meta'))) {
+    try {
+      const lt = loadMetaTeam(dir('data', 'staging', 'meta', f), { usageDir: dir('data', 'staging', 'usage') });
+      for (const s of lt.sets.filter(x => x.assumed)) md += `| ${f.replace('.txt', '')} | ${s.label} | ${s.assumption.parts.join(' + ')} (${s.nature}, ${JSON.stringify(s.evs)}) | ${s.assumption.olderRegulation ? '**OLDER REGULATION** ' : ''}${s.assumption.format} | ${s.assumption.usagePct}% |\n`;
+    } catch (e) { problems2.push(`${f}: ${e.message.split('\n')[0].slice(-300)}`); }
+  }
+  if (problems2.length) md += '\n**Teams that cannot be loaded (UNKNOWN spreads):**\n' + problems2.map(p => '- ' + p).join('\n') + '\n';
   if (missing.size) md += `\n**No spread data at all (will be UNKNOWN where the paste has none):** ${[...missing].join(', ')}\n`;
   if (bad.length || failed.length) md += `\n## Problems\n\n${[...failed, ...bad].map(p => `- ${p}`).join('\n')}\n`;
   write(dir('data', 'staging', 'SUMMARY.md'), md);
